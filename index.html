@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enigma Machine</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="enigma-container">
+        <div class="enigma-title">ENIGMA M3</div>
+
+        <div class="enigma-main">
+            <div class="rotor-section">
+                <div class="rotor-title">РОТОРЫ</div>
+                <div class="rotor-controls">
+                    <div class="rotor-group">
+                        <div class="rotor-label">Левый</div>
+                        <select class="rotor-selector" id="leftRotor">
+                            <option value="I">I</option>
+                            <option value="II">II</option>
+                            <option value="III" selected>III</option>
+                            <option value="IV">IV</option>
+                            <option value="V">V</option>
+                        </select>
+                        <input type="text" class="rotor-position" id="leftPosition" maxlength="1" value="A">
+                    </div>
+                    <div class="rotor-group">
+                        <div class="rotor-label">Средний</div>
+                        <select class="rotor-selector" id="middleRotor">
+                            <option value="I">I</option>
+                            <option value="II" selected>II</option>
+                            <option value="III">III</option>
+                            <option value="IV">IV</option>
+                            <option value="V">V</option>
+                        </select>
+                        <input type="text" class="rotor-position" id="middlePosition" maxlength="1" value="A">
+                    </div>
+                    <div class="rotor-group">
+                        <div class="rotor-label">Правый</div>
+                        <select class="rotor-selector" id="rightRotor">
+                            <option value="I" selected>I</option>
+                            <option value="II">II</option>
+                            <option value="III">III</option>
+                            <option value="IV">IV</option>
+                            <option value="V">V</option>
+                        </select>
+                        <input type="text" class="rotor-position" id="rightPosition" maxlength="1" value="A">
+                    </div>
+                    <div class="rotor-group">
+                        <div class="rotor-label">Рефлектор</div>
+                        <select class="rotor-selector" id="reflectorSelect">
+                            <option value="B" selected>B</option>
+                            <option value="C">C</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="plugboard-section">
+                <div class="plugboard-title">КОММУТАЦИОННАЯ ПАНЕЛЬ</div>
+                <input type="text" class="plugboard-input" id="plugboardInput"
+                       inputmode="latin" pattern="[A-Za-z ]*"
+                       placeholder="Введите пары букв через пробел (например: AB CD EF)">
+                <div class="plugboard-display" id="plugboardDisplay">
+                    Соединения: нет
+                </div>
+            </div>
+        </div>
+
+        <div class="keyboard-section">
+            <div class="keyboard-title">ЛАМПЫ</div>
+            <div class="lightboard" id="lightboard"></div>
+            <div class="keyboard-title">КЛАВИАТУРА</div>
+            <div class="keyboard" id="keyboard"></div>
+        </div>
+
+        <div class="io-section">
+            <div class="io-group">
+                <div class="io-title">ВВОД</div>
+                <textarea class="io-textarea" id="inputText" placeholder="Введите текст для шифрования..."></textarea>
+            </div>
+            <div class="io-group">
+                <div class="io-title">ВЫВОД</div>
+                <textarea class="io-textarea" id="outputText" placeholder="Зашифрованный текст появится здесь..." readonly></textarea>
+            </div>
+        </div>
+
+        <div class="controls-section">
+            <div class="controls-title">УПРАВЛЕНИЕ</div>
+            <div class="controls-buttons">
+                <button class="control-btn" onclick="processText()">ШИФРОВАТЬ / РАСШИФРОВАТЬ</button>
+                <button class="control-btn" onclick="swapIO()">↑↓ ПОМЕНЯТЬ ВВОД/ВЫВОД</button>
+                <button class="control-btn" onclick="clearAll()">ОЧИСТИТЬ</button>
+                <button class="control-btn" onclick="exportSettings()">ЭКСПОРТ</button>
+                <button class="control-btn" onclick="importSettings()">ИМПОРТ</button>
+            </div>
+        </div>
+
+        <div class="settings-info">
+            <div class="settings-title">ТЕКУЩИЕ НАСТРОЙКИ:</div>
+            <div id="settingsDisplay">
+                Роторы: I II III | Позиции: A A A | Рефлектор: B | Коммутации: нет
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
