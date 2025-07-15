@@ -20,9 +20,7 @@ let initialPositions = { left: 0, middle: 0, right: 0 };
 document.addEventListener('DOMContentLoaded', initializeInterface);
 
 function initializeInterface() {
-    const keyboardContainer = document.getElementById('keyboard');
     const lightboardContainer = document.getElementById('lightboard');
-    keyboardContainer.innerHTML = '';
     lightboardContainer.innerHTML = '';
 
     ALPHABET.split('').forEach(letter => {
@@ -31,61 +29,94 @@ function initializeInterface() {
         light.textContent = letter;
         light.id = `light-${letter}`;
         lightboardContainer.appendChild(light);
-
-        const key = document.createElement('div');
-        key.className = 'key';
-        key.textContent = letter;
-        key.onclick = () => {
-            document.getElementById('inputText').value += letter;
-            pressKey(letter);
-            processText();
-        };
-        keyboardContainer.appendChild(key);
     });
 
-    document.getElementById('plugboardInput').addEventListener('input', updatePlugboardAndSettings);
-    document.getElementById('inputText').addEventListener('input', processText);
+    const plugboardInput = document.getElementById('plugboardInput');
+    if (plugboardInput) {
+        plugboardInput.addEventListener('input', updatePlugboardAndSettings);
+        plugboardInput.addEventListener('keydown', handlePlugboardKeydown);
+    }
+
+    const inputText = document.getElementById('inputText');
+    if (inputText) {
+        inputText.addEventListener('input', processText);
+    }
 
     ['leftRotor', 'middleRotor', 'rightRotor', 'reflectorSelect'].forEach(id => {
-        document.getElementById(id).addEventListener('change', updateSettings);
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('change', updateSettings);
+        }
     });
 
     ['leftPosition', 'middlePosition', 'rightPosition'].forEach(id => {
-        document.getElementById(id).addEventListener('input', (e) => {
-            let value = e.target.value.toUpperCase();
-            if (!value.match(/^[A-Z]$/)) {
-                value = e.target.value.slice(0, -1).toUpperCase();
-            }
-            e.target.value = value;
-            if (value.match(/^[A-Z]$/)) {
-                 updateInitialPositions();
-            }
-        });
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', (e) => {
+                let value = e.target.value ? e.target.value.toUpperCase() : '';
+                if (value && !value.match(/^[A-Z]$/)) {
+                    value = value.slice(0, -1);
+                }
+                e.target.value = value;
+                if (value.match(/^[A-Z]$/)) {
+                    updateInitialPositions();
+                }
+            });
+        }
     });
 
     document.addEventListener('keydown', (e) => {
-        const key = e.key.toUpperCase();
+        const key = e.key ? e.key.toUpperCase() : '';
         const activeElement = document.activeElement;
-        const inputFields = ['plugboardInput', 'leftPosition', 'middlePosition', 'rightPosition'];
-
-        if (activeElement && inputFields.includes(activeElement.id)) {
-            return;
+        
+        const inputFields = ['plugboardInput', 'leftPosition', 'middlePosition', 'rightPosition', 'inputText', 'outputText'];
+        const textareas = ['inputText', 'outputText'];
+        
+        if (activeElement && (
+            inputFields.includes(activeElement.id) || 
+            activeElement.tagName === 'INPUT' || 
+            activeElement.tagName === 'TEXTAREA' || 
+            activeElement.tagName === 'SELECT'
+        )) {
+            return; 
         }
 
         if (ALPHABET.includes(key)) {
             e.preventDefault();
             const inputTextArea = document.getElementById('inputText');
-            inputTextArea.value += key;
-            pressKey(key);
-            processText();
+            if (inputTextArea) {
+                inputTextArea.value += key;
+                processText();
+            }
         }
     });
 
     updateInitialPositions();
+    updateSettings();
+}
+
+function handlePlugboardKeydown(e) {
+    const key = e.key.toUpperCase();
+    
+    if (key.length === 1 && !ALPHABET.includes(key) && key !== ' ') {
+        e.preventDefault();
+        return;
+    }
+    
+    const allowedKeys = ['BACKSPACE', 'DELETE', 'ARROWLEFT', 'ARROWRIGHT', 'HOME', 'END', 'TAB'];
+    if (!ALPHABET.includes(key) && key !== ' ' && !allowedKeys.includes(key)) {
+        e.preventDefault();
+    }
 }
 
 function updatePlugboardAndSettings() {
-    const input = document.getElementById('plugboardInput').value.toUpperCase();
+    const plugboardInput = document.getElementById('plugboardInput');
+    if (!plugboardInput) return;
+
+    let input = plugboardInput.value.toUpperCase().replace(/[^A-Z ]/g, '');
+    
+    plugboardInput.value = input;
+    
     const pairs = input.split(' ').filter(pair => pair.length === 2 && /^[A-Z]{2}$/.test(pair));
 
     plugboardMap = {};
@@ -103,17 +134,27 @@ function updatePlugboardAndSettings() {
         }
     }
 
-    document.getElementById('plugboardInput').value = validPairs.join(' ');
+    plugboardInput.value = validPairs.join(' ');
+    
     const display = document.getElementById('plugboardDisplay');
-    display.textContent = validPairs.length > 0 ? `Соединения: ${validPairs.join(' ')}` : 'Соединения: нет';
+    if (display) {
+        const statusIndicator = validPairs.length > 0 ? 
+            '<span class="status-indicator" style="background: #00ff00;"></span>' : 
+            '<span class="status-indicator"></span>';
+        display.innerHTML = `${statusIndicator}Соединения: ${validPairs.length > 0 ? validPairs.join(' ') : '...'}`;
+    }
 
     updateSettings();
 }
 
 function updateInitialPositions() {
-    const leftPos = document.getElementById('leftPosition').value || 'A';
-    const middlePos = document.getElementById('middlePosition').value || 'A';
-    const rightPos = document.getElementById('rightPosition').value || 'A';
+    const leftPosElement = document.getElementById('leftPosition');
+    const middlePosElement = document.getElementById('middlePosition');
+    const rightPosElement = document.getElementById('rightPosition');
+
+    const leftPos = leftPosElement ? leftPosElement.value || 'A' : 'A';
+    const middlePos = middlePosElement ? middlePosElement.value || 'A' : 'A';
+    const rightPos = rightPosElement ? rightPosElement.value || 'A' : 'A';
 
     initialPositions = {
         left: ALPHABET.indexOf(leftPos),
@@ -124,15 +165,48 @@ function updateInitialPositions() {
 }
 
 function updateSettings() {
+    const leftRotor = document.getElementById('leftRotor');
+    const middleRotor = document.getElementById('middleRotor');
+    const rightRotor = document.getElementById('rightRotor');
+    const reflectorSelect = document.getElementById('reflectorSelect');
+    const leftPosition = document.getElementById('leftPosition');
+    const middlePosition = document.getElementById('middlePosition');
+    const rightPosition = document.getElementById('rightPosition');
+    const plugboardInput = document.getElementById('plugboardInput');
+
+    if (!leftRotor || !middleRotor || !rightRotor || !reflectorSelect || 
+        !leftPosition || !middlePosition || !rightPosition || !plugboardInput) {
+        return;
+    }
+
     const settings = {
-        rotors: `${document.getElementById('leftRotor').value} ${document.getElementById('middleRotor').value} ${document.getElementById('rightRotor').value}`,
-        positions: `${document.getElementById('leftPosition').value} ${document.getElementById('middlePosition').value} ${document.getElementById('rightPosition').value}`,
-        reflector: document.getElementById('reflectorSelect').value,
-        plugs: document.getElementById('plugboardInput').value.trim() || 'нет'
+        rotors: `${leftRotor.value} ${middleRotor.value} ${rightRotor.value}`,
+        positions: `${leftPosition.value} ${middlePosition.value} ${rightPosition.value}`,
+        reflector: reflectorSelect.value,
+        plugs: plugboardInput.value.trim() || '...'
     };
 
-    document.getElementById('settingsDisplay').textContent =
-        `Роторы: ${settings.rotors} | Позиции: ${settings.positions} | Рефлектор: ${settings.reflector} | Коммутации: ${settings.plugs}`;
+    const settingsDisplay = document.getElementById('settingsDisplay');
+    if (settingsDisplay) {
+        settingsDisplay.innerHTML = `
+            <div class="settings-line">
+                <span class="settings-label">Роторы:</span>
+                <span class="settings-value">${settings.rotors}</span>
+            </div>
+            <div class="settings-line">
+                <span class="settings-label">Позиция:</span>
+                <span class="settings-value">${settings.positions}</span>
+            </div>
+            <div class="settings-line">
+                <span class="settings-label">Рефлектор:</span>
+                <span class="settings-value">${settings.reflector}</span>
+            </div>
+            <div class="settings-line">
+                <span class="settings-label">Соединение:</span>
+                <span class="settings-value">${settings.plugs}</span>
+            </div>
+        `;
+    }
 
     processText();
 }
@@ -196,22 +270,17 @@ function encryptLetter(char) {
 }
 
 let lightTimeout;
-function pressKey(letter) {
-    document.querySelectorAll('.key').forEach(k => k.classList.remove('pressed'));
-    const keyEl = Array.from(document.querySelectorAll('.key')).find(k => k.textContent === letter);
-    if(keyEl) keyEl.classList.add('pressed');
-    
-    if (lightTimeout) clearTimeout(lightTimeout);
-    document.querySelectorAll('.light').forEach(light => light.classList.remove('lit'));
-
-    setTimeout(() => {
-        if(keyEl) keyEl.classList.remove('pressed');
-    }, 200);
-}
 
 function processText() {
-    const inputText = document.getElementById('inputText').value.toUpperCase();
-    const outputTextarea = document.getElementById('outputText');
+    const inputTextElement = document.getElementById('inputText');
+    const outputTextElement = document.getElementById('outputText');
+    const rightPositionElement = document.getElementById('rightPosition');
+    const middlePositionElement = document.getElementById('middlePosition');
+    const leftPositionElement = document.getElementById('leftPosition');
+    
+    if (!inputTextElement || !outputTextElement) return;
+
+    const inputText = inputTextElement.value.toUpperCase();
     
     currentRotorPositions = { ...initialPositions };
 
@@ -225,7 +294,20 @@ function processText() {
         }
     }
     
-    outputTextarea.value = outputText;
+    outputTextElement.value = outputText;
+
+    if (rightPositionElement) {
+        rightPositionElement.value = ALPHABET[currentRotorPositions.right];
+    }
+    if (middlePositionElement) {
+        middlePositionElement.value = ALPHABET[currentRotorPositions.middle];
+    }
+    if (leftPositionElement) {
+        leftPositionElement.value = ALPHABET[currentRotorPositions.left];
+    }
+
+    if (lightTimeout) clearTimeout(lightTimeout);
+    document.querySelectorAll('.light').forEach(light => light.classList.remove('lit'));
 
     if (lastEncryptedChar) {
         const lightEl = document.getElementById(`light-${lastEncryptedChar}`);
@@ -233,18 +315,16 @@ function processText() {
             lightEl.classList.add('lit');
             lightTimeout = setTimeout(() => {
                 lightEl.classList.remove('lit');
-            }, 500);
+            }, 800);
         }
     }
-
-    document.getElementById('rightPosition').value = ALPHABET[currentRotorPositions.right];
-    document.getElementById('middlePosition').value = ALPHABET[currentRotorPositions.middle];
-    document.getElementById('leftPosition').value = ALPHABET[currentRotorPositions.left];
 }
 
 function swapIO() {
     const inputText = document.getElementById('inputText');
     const outputText = document.getElementById('outputText');
+    
+    if (!inputText || !outputText) return;
     
     const temp = inputText.value;
     inputText.value = outputText.value;
@@ -254,76 +334,40 @@ function swapIO() {
 }
 
 function clearAll() {
-    document.getElementById('inputText').value = '';
-    document.getElementById('outputText').value = '';
-    document.getElementById('plugboardInput').value = '';
+    const elements = {
+        inputText: document.getElementById('inputText'),
+        outputText: document.getElementById('outputText'),
+        plugboardInput: document.getElementById('plugboardInput'),
+        leftRotor: document.getElementById('leftRotor'),
+        middleRotor: document.getElementById('middleRotor'),
+        rightRotor: document.getElementById('rightRotor'),
+        reflectorSelect: document.getElementById('reflectorSelect'),
+        leftPosition: document.getElementById('leftPosition'),
+        middlePosition: document.getElementById('middlePosition'),
+        rightPosition: document.getElementById('rightPosition')
+    };
 
-    document.getElementById('leftRotor').value = 'III';
-    document.getElementById('middleRotor').value = 'II';
-    document.getElementById('rightRotor').value = 'I';
-    document.getElementById('reflectorSelect').value = 'B';
+    if (elements.inputText) elements.inputText.value = '';
+    if (elements.outputText) elements.outputText.value = '';
+    if (elements.plugboardInput) elements.plugboardInput.value = '';
 
-    document.getElementById('leftPosition').value = 'A';
-    document.getElementById('middlePosition').value = 'A';
-    document.getElementById('rightPosition').value = 'A';
+    if (elements.leftRotor) elements.leftRotor.value = 'III';
+    if (elements.middleRotor) elements.middleRotor.value = 'II';
+    if (elements.rightRotor) elements.rightRotor.value = 'I';
+    if (elements.reflectorSelect) elements.reflectorSelect.value = 'B';
+
+    if (elements.leftPosition) elements.leftPosition.value = 'A';
+    if (elements.middlePosition) elements.middlePosition.value = 'A';
+    if (elements.rightPosition) elements.rightPosition.value = 'A';
     
     updatePlugboardAndSettings();
     updateInitialPositions();
 }
 
-function exportSettings() {
-    const settings = {
-        leftRotor: document.getElementById('leftRotor').value,
-        middleRotor: document.getElementById('middleRotor').value,
-        rightRotor: document.getElementById('rightRotor').value,
-        reflector: document.getElementById('reflectorSelect').value,
-        leftPosition: document.getElementById('leftPosition').value,
-        middlePosition: document.getElementById('middlePosition').value,
-        rightPosition: document.getElementById('rightPosition').value,
-        plugboard: document.getElementById('plugboardInput').value
-    };
 
-    const settingsJson = JSON.stringify(settings, null, 2);
-    const blob = new Blob([settingsJson], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'enigma-settings.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
-function importSettings() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json,application/json';
-    input.onchange = e => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = event => {
-            try {
-                const settings = JSON.parse(event.target.result);
-                document.getElementById('leftRotor').value = settings.leftRotor || 'III';
-                document.getElementById('middleRotor').value = settings.middleRotor || 'II';
-                document.getElementById('rightRotor').value = settings.rightRotor || 'I';
-                document.getElementById('reflectorSelect').value = settings.reflector || 'B';
-                document.getElementById('leftPosition').value = settings.leftPosition || 'A';
-                document.getElementById('middlePosition').value = settings.middlePosition || 'A';
-                document.getElementById('rightPosition').value = settings.rightPosition || 'A';
-                document.getElementById('plugboardInput').value = settings.plugboard || '';
-
-                updatePlugboardAndSettings();
-                updateInitialPositions();
-            } catch (error) {
-                console.error("Ошибка при чтении файла настроек:", error);
-                alert("Не удалось прочитать файл настроек. Убедитесь, что это корректный JSON файл.");
-            }
-        };
-        reader.readAsText(file);
-    };
-    input.click();
-}
+document.addEventListener('DOMContentLoaded', () => {
+    document.body.style.overscrollBehavior = 'none';
+    document.documentElement.style.overscrollBehavior = 'none';
+    
+    initializeInterface();
+});

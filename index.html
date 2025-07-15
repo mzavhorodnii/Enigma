@@ -3,19 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enigma Machine</title>
+    <title>ENIGMA - Kriegsmarine</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="enigma-container">
-        <div class="enigma-title">ENIGMA M3</div>
+        <div class="enigma-header">
+            <div class="enigma-title">ENIGMA</div>
+            <div class="enigma-subtitle">KRIEGSMARINE</div>
+        </div>
 
         <div class="enigma-main">
             <div class="rotor-section">
-                <div class="rotor-title">РОТОРЫ</div>
+                <div class="section-title">
+                    <span class="section-icon">⚙</span>
+                    РОТОРЫ
+                </div>
                 <div class="rotor-controls">
                     <div class="rotor-group">
-                        <div class="rotor-label">Левый</div>
+                        <div class="rotor-label">РОТОР 1</div>
                         <select class="rotor-selector" id="leftRotor">
                             <option value="I">I</option>
                             <option value="II">II</option>
@@ -26,7 +32,7 @@
                         <input type="text" class="rotor-position" id="leftPosition" maxlength="1" value="A">
                     </div>
                     <div class="rotor-group">
-                        <div class="rotor-label">Средний</div>
+                        <div class="rotor-label">РОТОР 2</div>
                         <select class="rotor-selector" id="middleRotor">
                             <option value="I">I</option>
                             <option value="II" selected>II</option>
@@ -37,7 +43,7 @@
                         <input type="text" class="rotor-position" id="middlePosition" maxlength="1" value="A">
                     </div>
                     <div class="rotor-group">
-                        <div class="rotor-label">Правый</div>
+                        <div class="rotor-label">РОТОР 3</div>
                         <select class="rotor-selector" id="rightRotor">
                             <option value="I" selected>I</option>
                             <option value="II">II</option>
@@ -48,7 +54,7 @@
                         <input type="text" class="rotor-position" id="rightPosition" maxlength="1" value="A">
                     </div>
                     <div class="rotor-group">
-                        <div class="rotor-label">Рефлектор</div>
+                        <div class="rotor-label">РЕФЛЕКОР</div>
                         <select class="rotor-selector" id="reflectorSelect">
                             <option value="B" selected>B</option>
                             <option value="C">C</option>
@@ -58,49 +64,87 @@
             </div>
 
             <div class="plugboard-section">
-                <div class="plugboard-title">КОММУТАЦИОННАЯ ПАНЕЛЬ</div>
+                <div class="section-title">
+                    <span class="section-icon">🔌</span>
+                    Коммутационная панель
+                </div>
                 <input type="text" class="plugboard-input" id="plugboardInput"
-                       inputmode="latin" pattern="[A-Za-z ]*"
-                       placeholder="Введите пары букв через пробел (например: AB CD EF)">
+                       placeholder="Соединения: AB CD EF GH IJ KL MN OP QR ST">
                 <div class="plugboard-display" id="plugboardDisplay">
-                    Соединения: нет
+                    <span class="status-indicator"></span>
+                    Соединения:
                 </div>
             </div>
-        </div>
 
-        <div class="keyboard-section">
-            <div class="keyboard-title">ЛАМПЫ</div>
-            <div class="lightboard" id="lightboard"></div>
-            <div class="keyboard-title">КЛАВИАТУРА</div>
-            <div class="keyboard" id="keyboard"></div>
-        </div>
-
-        <div class="io-section">
-            <div class="io-group">
-                <div class="io-title">ВВОД</div>
-                <textarea class="io-textarea" id="inputText" placeholder="Введите текст для шифрования..."></textarea>
+            <div class="lightboard-section">
+                <div class="section-title">
+                    <span class="section-icon">💡</span>
+                    Ламповая доска
+                </div>
+                <div class="lightboard" id="lightboard"></div>
             </div>
-            <div class="io-group">
-                <div class="io-title">ВЫВОД</div>
-                <textarea class="io-textarea" id="outputText" placeholder="Зашифрованный текст появится здесь..." readonly></textarea>
-            </div>
-        </div>
 
-        <div class="controls-section">
-            <div class="controls-title">УПРАВЛЕНИЕ</div>
-            <div class="controls-buttons">
-                <button class="control-btn" onclick="processText()">ШИФРОВАТЬ / РАСШИФРОВАТЬ</button>
-                <button class="control-btn" onclick="swapIO()">↑↓ ПОМЕНЯТЬ ВВОД/ВЫВОД</button>
-                <button class="control-btn" onclick="clearAll()">ОЧИСТИТЬ</button>
-                <button class="control-btn" onclick="exportSettings()">ЭКСПОРТ</button>
-                <button class="control-btn" onclick="importSettings()">ИМПОРТ</button>
+            <div class="io-section">
+                <div class="io-group">
+                    <div class="section-title">
+                        <span class="section-icon">📝</span>
+                        ВВОД
+                    </div>
+                    <textarea class="io-textarea" id="inputText" placeholder="Ввод текста..."></textarea>
+                </div>
+                <div class="io-group">
+                    <div class="section-title">
+                        <span class="section-icon">🔒</span>
+                        ВЫВОД
+                    </div>
+                    <textarea class="io-textarea" id="outputText" placeholder="Вывод..." readonly></textarea>
+                </div>
             </div>
-        </div>
 
-        <div class="settings-info">
-            <div class="settings-title">ТЕКУЩИЕ НАСТРОЙКИ:</div>
-            <div id="settingsDisplay">
-                Роторы: I II III | Позиции: A A A | Рефлектор: B | Коммутации: нет
+            <div class="controls-section">
+                <div class="section-title">
+                    <span class="section-icon">⚡</span>
+                    УПРАВЛЕНИЕ
+                </div>
+                <div class="controls-buttons">
+                    <button class="control-btn primary" onclick="processText()">
+                        <span class="btn-icon">🔐</span>
+                        Шифровать/Дешифровать
+                    </button>
+                    <button class="control-btn secondary" onclick="swapIO()">
+                        <span class="btn-icon">🔄</span>
+                        Ввод/Вывод
+                    </button>
+                    <button class="control-btn danger" onclick="clearAll()">
+                        <span class="btn-icon">🗑</span>
+                        Очистить
+                    </button>
+                </div>
+            </div>
+
+            <div class="settings-info">
+                <div class="section-title">
+                    <span class="section-icon">📊</span>
+                    НАСТРОЙКИ
+                </div>
+                <div class="settings-display" id="settingsDisplay">
+                    <div class="settings-line">
+                        <span class="settings-label">Роторы:</span>
+                        <span class="settings-value">I II III</span>
+                    </div>
+                    <div class="settings-line">
+                        <span class="settings-label">Позиции:</span>
+                        <span class="settings-value">A A A</span>
+                    </div>
+                    <div class="settings-line">
+                        <span class="settings-label">Рефлектор:</span>
+                        <span class="settings-value">B</span>
+                    </div>
+                    <div class="settings-line">
+                        <span class="settings-label">Соединения:</span>
+                        <span class="settings-value">...</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
